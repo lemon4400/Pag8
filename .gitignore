@@ -1,0 +1,21 @@
+# Flutter/Dart generated files
+hello_world_app/build/
+hello_world_app/.dart_tool/
+hello_world_app/.flutter-plugins
+hello_world_app/.flutter-plugins-dependencies
+hello_world_app/.packages
+
+# IDE
+hello_world_app/.idea/
+hello_world_app/*.iml
+hello_world_app/*.ipr
+hello_world_app/*.iws
+hello_world_app/.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs and diagnostics
+*.log
+doctor*.txt
