@@ -24,7 +24,7 @@ Dentro de cada grupo, os membros podem registar despesas categorizadas e visuali
 
 ## 📌 Milestone 1: Setup, Arquitetura e Estrutura Base
 
-* [ ] **Tarefa 1.1: Estrutura de Pastas**
+* [x] **Tarefa 1.1: Estrutura de Pastas**
   * Criar a estrutura base seguindo a abordagem *Feature-first*:
     ```text
     lib/
@@ -37,7 +37,7 @@ Dentro de cada grupo, os membros podem registar despesas categorizadas e visuali
      └── main.dart
     ```
 
-* [ ] **Tarefa 1.2: Configuração do `pubspec.yaml` e Dependências**
+* [x] **Tarefa 1.2: Configuração do `pubspec.yaml` e Dependências**
   * Adicionar e instalar as dependências principais:
     * Gestão de estado: `flutter_riverpod`, `riverpod_annotation`
     * Navegação: `go_router`
@@ -47,49 +47,79 @@ Dentro de cada grupo, os membros podem registar despesas categorizadas e visuali
     * Dev Dependencies: `build_runner`, `riverpod_generator`, `json_serializable`
   * Executar `flutter pub get` e verificar compilação limpa.
 
-* [ ] **Tarefa 1.3: Configuração Inicial do Supabase e Modelos de Dados (Data Models)**
+* [x] **Tarefa 1.3: Configuração Inicial do Supabase e Modelos de Dados (Data Models)**
   * Configurar a inicialização do Supabase no `main.dart` usando variáveis de ambiente/constantes.
   * Criar os modelos imutáveis em Dart (com serialização JSON para integração com Supabase):
     * `UserModel` (`id`, `name`, `email`, `avatarUrl`)
     * `GroupModel` (`id`, `name`, `code`, `isClosed`, `createdBy`, `createdAt`)
     * `ExpenseModel` (`id`, `groupId`, `title`, `amount`, `paidByUserId`, `category`, `splitWithUserIds`, `createdAt`)
 
+* [x] **Tarefa 1.4: Criar tabelas no Supabase (SQL)**
+  * Executar no Supabase Dashboard → SQL Editor:
+    * Tabela `profiles` (id uuid references auth.users, name, email, avatar_url nullable, created_at)
+    * Trigger SQL para inserir automaticamente em `profiles` quando um utilizador é criado em `auth.users`
+    * Tabela `groups` (id, name, code, is_closed, created_by, created_at)
+    * Tabela `group_members` (id, group_id, user_id, joined_at)
+    * Tabela `expenses` (id, group_id, title, amount, paid_by_user_id, category, split_with_user_ids, created_at)
+  * Verificar que as tabelas aparecem no Table Editor do Supabase
+
 ---
 
 ## 📌 Milestone 2: Autenticação e Gestão de Utilizadores (Auth)
 
-* [ ] **Tarefa 2.1: Serviços de Autenticação com Supabase**
-  * Configurar o cliente Supabase Auth para registo e login (E-mail/Password ou Magic Link/Anónimo com Nome de Utilizador).
+* [x] **Tarefa 2.1: Serviços de Autenticação com Supabase**
+  * Configurar o cliente Supabase Auth para registo e login (E-mail/Password).
   * Criar o repositório `AuthRepository` para gerir o registo, login, logout e sessão atual.
+  * Garantir que dados adicionais do utilizador (nome, avatar) são persistidos após registo (ver Tarefa 2.4).
 
-* [ ] **Tarefa 2.2: Ecrãs de Login / Registo e Proteção de Rotas**
+* [x] **Tarefa 2.2: Ecrãs de Login / Registo e Proteção de Rotas**
   * Criar a interface de utilizador para o ecrã de Login / Registo.
   * Configurar o `GoRouter` com um *redirect guard*: se o utilizador não estiver autenticado, é redirecionado para o ecrã de Login; se estiver, vai direto para a Home.
 
-* [ ] **Tarefa 2.3: Estado Global de Utilizador (Auth Provider)**
+* [x] **Tarefa 2.3: Estado Global de Utilizador (Auth Provider)**
   * Criar um provider em `Riverpod` (`currentUserProvider`) para expor o estado do utilizador logado em tempo real em toda a aplicação.
+  * O provider deve combinar dados de `auth.users` (email, id) com a tabela `profiles` (nome, avatar_url).
+
+* [x] **Tarefa 2.4: Perfil de Utilizador e Persistência de Dados**
+  * Criar tabela `profiles` no Supabase com colunas:
+    * `id` (uuid, references auth.users, primary key)
+    * `name` (text)
+    * `email` (text)
+    * `avatar_url` (text, nullable)
+    * `created_at` (timestamp with time zone, default now())
+  * Criar trigger SQL para inserir automaticamente na tabela `profiles`
+    quando um novo utilizador é criado em `auth.users`.
+  * Criar modelo `ProfileModel` em Dart (imutável, serialização JSON):
+    * `lib/features/auth/data/models/profile_model.dart`
+  * Atualizar `AuthRepository.signUp` para garantir que o perfil é
+    criado/consistente após registo (ou confiar no trigger do Supabase).
+  * Atualizar `currentUserProvider` para incluir dados do profile
+    (ex: juntar `name` e `avatar_url` da tabela `profiles`).
 
 ---
 
 ## 📌 Milestone 3: Ecrã Principal e Gestão de Grupos
 
-* [ ] **Tarefa 3.1: Ecrã Home Base (Requisito 4)**
+* [x] **Tarefa 3.1: Ecrã Home Base (Requisito 4)**
   * Criar o ecrã principal utilizando `GoRouter` e `Riverpod`.
   * Implementar duas secções/abas: **Grupos Ativos** e **Grupos Fechados**, ligadas ao Supabase.
   * Adicionar o botão flutuante (`FloatingActionButton` com ícone `+`) para abrir a criação/adesão a grupos.
 
-* [ ] **Tarefa 3.2: Criar Grupo e Gerar Código (Requisito 3)**
+* [x] **Tarefa 3.2: Criar Grupo e Gerar Código (Requisito 3)**
   * Criar formulário para inserção do nome do grupo.
   * Implementar gerador de código alfanumérico único de 6 dígitos (ex: `A7X92B`).
-  * Guardar o novo grupo na tabela de grupos do Supabase e associar o utilizador atual como criador/membro.
+  * Guardar o novo grupo na tabela de grupos do Supabase.
+  * Associar o utilizador atual (id da tabela `profiles`) como criador e primeiro membro do grupo.
 
 * [ ] **Tarefa 3.3: Juntar-se a um Grupo por Código (Requisitos 1 e 3)**
   * Criar ecrã/modal onde o utilizador insere o código de 6 dígitos.
   * Validar a existência do código na base de dados.
-  * Adicionar o utilizador autenticado à lista de membros do grupo (garantindo suporte a pelo menos 10 pessoas por grupo).
+  * Adicionar o utilizador autenticado (id da tabela `profiles`) à lista de membros do grupo.
+  * Garantir suporte a pelo menos 10 pessoas por grupo.
 
 * [ ] **Tarefa 3.4: Listagem de Membros no Detalhe do Grupo**
   * Criar a vista interna do grupo com a lista visual de todos os membros associados.
+  * Buscar nomes e avatares dos membros da tabela `profiles` do Supabase.
 
 ---
 
